@@ -4,6 +4,8 @@ public class InvoiceItem {
 	private Product product = new Product();
 	private float quantity;
 	
+/*-----------------------------------------------------------------------------------------*/
+	
 	public int getId() {
 		return product.getId();
 	}
@@ -19,6 +21,8 @@ public class InvoiceItem {
 	public float getTotalAmount() {
 		return product.getPrice()*quantity;
 	}
+	
+/*-----------------------------------------------------------------------------------------*/
 	
 	public void setProduct(Product product) {
 		this.product = product;

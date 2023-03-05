@@ -4,6 +4,8 @@ public class Product {
 	private String productName;
 	private float productPrice;
 	
+/*-----------------------------------------------------------------------------------------*/
+	
 	public int getId() {
 		return productId;
 	}
@@ -13,6 +15,8 @@ public class Product {
 	public String getName() {
 		return productName;
 	}
+	
+/*-----------------------------------------------------------------------------------------*/
 	
 	public void setProductId(int productId) {
 		this.productId = productId;
