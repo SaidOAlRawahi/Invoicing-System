@@ -27,11 +27,29 @@ public class Invoice {
 		}
 		return totalAmount;
 	}
+	
 	public float getAmountPaid() {
 		return paidAmount;
 	}
 	public float getBalance() {
 		return getAmountPaid() - getTotalAmount();
 	}
-	
+	public void setCustomerFirstName(String customerFirstName) {
+		this.customerFirstName = customerFirstName;
+	}
+	public void setCustomerLastName(String customerLastName) {
+		this.customerLastName = customerLastName;
+	}
+	public void setCustomerPhoneNo(int customerPhoneNo) {
+		this.customerPhoneNo = customerPhoneNo;
+	}
+	public void setInitiatedDate(String initiatedDate) {
+		this.initiatedDate = initiatedDate;
+	}
+	public void setItems(ArrayList<InvoiceItem> items) {
+		this.items = items;
+	}
+	public void setPaidAmount(float paidAmount) {
+		this.paidAmount = paidAmount;
+	}
 }

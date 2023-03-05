@@ -13,4 +13,15 @@ public class Product {
 	public String getName() {
 		return productName;
 	}
+	
+	public void setProductId(int productId) {
+		this.productId = productId;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+	public void setProductPrice(float productPrice) {
+		this.productPrice = productPrice;
+	}
+	
 }

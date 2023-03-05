@@ -19,4 +19,12 @@ public class InvoiceItem {
 	public float getTotalAmount() {
 		return product.getPrice()*quantity;
 	}
+	
+	public void setProduct(Product product) {
+		this.product = product;
+	}
+	public void setQuantity(float quantity) {
+		this.quantity = quantity;
+	}
+	
 }
