@@ -1,8 +1,13 @@
+import java.io.Serializable;
 
-public class InvoiceItem {
+public class InvoiceItem implements Serializable{
 
-	private Product product = new Product();
-	private float quantity;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2500028658262011102L;
+	private Product product;
+	private float quantity = 0;
 	
 /*-----------------------------------------------------------------------------------------*/
 	

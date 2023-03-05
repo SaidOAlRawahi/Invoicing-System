@@ -11,6 +11,7 @@ abstract public class Menu {
 		}
 		return this.menuParts;
 	}
+	
 }
 
 class  MainMenu extends Menu{

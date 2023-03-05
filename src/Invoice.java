@@ -1,12 +1,18 @@
+import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
-public class Invoice {
+public class Invoice implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2667564412454072542L;
 	private String customerFirstName;
 	private String customerLastName;
 	private int customerPhoneNo;
-	private String initiatedDate;
-	private ArrayList<InvoiceItem> items;
+	private LocalDate initiatedDate;
 	private float paidAmount;
+	ArrayList<InvoiceItem> items;
 	
 	
 /*-----------------------------------------------------------------------------------------*/
@@ -17,7 +23,7 @@ public class Invoice {
 	public int getCustomerPhoneNo() {
 		return customerPhoneNo;
 	}
-	public String getDate() {
+	public LocalDate getDate() {
 		return initiatedDate;
 	}
 	public int getItemsCount() {
@@ -30,12 +36,12 @@ public class Invoice {
 		}
 		return totalAmount;
 	}
-
-/*-----------------------------------------------------------------------------------------*/
-	
 	public float getAmountPaid() {
 		return paidAmount;
 	}
+
+/*-----------------------------------------------------------------------------------------*/
+	
 	public float getBalance() {
 		return getAmountPaid() - getTotalAmount();
 	}
@@ -48,13 +54,16 @@ public class Invoice {
 	public void setCustomerPhoneNo(int customerPhoneNo) {
 		this.customerPhoneNo = customerPhoneNo;
 	}
-	public void setInitiatedDate(String initiatedDate) {
+	public void setInitiatedDate(LocalDate initiatedDate) {
 		this.initiatedDate = initiatedDate;
 	}
-	public void setItems(ArrayList<InvoiceItem> items) {
-		this.items = items;
-	}
-	public void setPaidAmount(float paidAmount) {
-		this.paidAmount = paidAmount;
+	public boolean setPaidAmount(float paidAmount) {
+		if (paidAmount >= getTotalAmount()) {
+			this.paidAmount = paidAmount;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
