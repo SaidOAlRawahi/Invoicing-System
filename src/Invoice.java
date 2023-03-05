@@ -7,10 +7,7 @@ public class Invoice {
 	private String initiatedDate;
 	private ArrayList<InvoiceItem> items;
 	private float paidAmount;
-	private int tel;
-	private int fax;
-	private String email;
-	private String website;
+	
 	
 /*-----------------------------------------------------------------------------------------*/
 	
@@ -33,19 +30,7 @@ public class Invoice {
 		}
 		return totalAmount;
 	}
-	public int getTel() {
-		return tel;
-	}
-	public int getFax() {
-		return fax;
-	}
-	public String getEmail() {
-		return email;
-	}
-	public String getWebsite() {
-		return website;
-	}
-	
+
 /*-----------------------------------------------------------------------------------------*/
 	
 	public float getAmountPaid() {
@@ -71,17 +56,5 @@ public class Invoice {
 	}
 	public void setPaidAmount(float paidAmount) {
 		this.paidAmount = paidAmount;
-	}
-	public void setTel(int tel) {
-		this.tel = tel;
-	}
-	public void setFax(int fax) {
-		this.fax = fax;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	public void setWebsite(String website) {
-		this.website = website;
 	}
 }

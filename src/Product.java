@@ -18,13 +18,13 @@ public class Product {
 	
 /*-----------------------------------------------------------------------------------------*/
 	
-	public void setProductId(int productId) {
+	public void setId(int productId) {
 		this.productId = productId;
 	}
-	public void setProductName(String productName) {
+	public void setName(String productName) {
 		this.productName = productName;
 	}
-	public void setProductPrice(float productPrice) {
+	public void setPrice(float productPrice) {
 		this.productPrice = productPrice;
 	}
 	

@@ -15,7 +15,7 @@ abstract public class Menu {
 
 class  MainMenu extends Menu{
 	MainMenu(){
-		this.title = "\n Main Menu.";
+		this.title = "\nMain Menu.";
 		this.menuParts.add(new ShopSettingsPart());
 		this.menuParts.add(new ManageShopItemsPart());
 		this.menuParts.add(new CreateNewInvoicePart());
@@ -27,9 +27,9 @@ class  MainMenu extends Menu{
 	}
 }
 
-class  ShopSettingMenu extends Menu{
-	ShopSettingMenu(){
-		this.title = "\n Shop Settings.";
+class  ShopSettingsMenu extends Menu{
+	ShopSettingsMenu(){
+		this.title = "\nShop Settings.";
 		this.menuParts.add(new LoadDataPart());
 		this.menuParts.add(new SetShopNamePart());
 		this.menuParts.add(new SetInvoiceHeaderPart());
@@ -39,7 +39,7 @@ class  ShopSettingMenu extends Menu{
 
 class  ManageShopMenu extends Menu{
 	ManageShopMenu(){
-		this.title = "\n Manage Shop Items.";
+		this.title = "\nManage Shop Items.";
 		this.menuParts.add(new AddItemsPart());
 		this.menuParts.add(new DeleteItemsPart());
 		this.menuParts.add(new ChangeItemPricePart());
