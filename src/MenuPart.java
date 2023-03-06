@@ -1,7 +1,9 @@
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedList;
+
 
 abstract public class MenuPart {
 	int clicks = 0;
@@ -63,66 +65,98 @@ class CreateNewInvoicePart extends MenuPart{
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		Invoice newInvoice = new Invoice();
-		newInvoice.setCustomerFirstName(Shop.getStringInput("Enter the customer first name: "));
-		newInvoice.setCustomerLastName(Shop.getStringInput("Enter the customer last name: "));
-		newInvoice.setCustomerPhoneNo(Shop.getIntInput("Enter the customer phone Number: "));
-		newInvoice.setInitiatedDate(LocalDate.now());
-		
 		do {
-			int productId = Shop.getIntInput("Enter the id of the product: ");
-			Product product = Shop.getProductById(productId);
-			if (product != null) {
-				float quantity = Shop.getFloatInput("Enter the quantity");
-				InvoiceItem item = new InvoiceItem();
-				item.setProduct(product);
-				item.setQuantity(quantity);
-				newInvoice.items.add(item);
+			int invoiceNo = Shop.getIntInput("Enter the bill number: ");
+			Invoice newInvoice = Shop.getInvoiceById(invoiceNo);
+			if (newInvoice != null) {
+				System.out.println("Invoice already exists.");
 			}
 			else {
-				System.out.println("Product with an id of " + productId + " does not Exist...");
+				newInvoice = new Invoice();
+				newInvoice.setInvoiceNo(invoiceNo);
+				newInvoice.setCustomerFirstName(Shop.getStringInput("Enter the customer first name: "));
+				newInvoice.setCustomerLastName(Shop.getStringInput("Enter the customer last name: "));
+				newInvoice.setCustomerPhoneNo(Shop.getIntInput("Enter the customer phone Number: "));
+				newInvoice.setInitiatedDate(LocalDate.now());
+				
+				do {
+					int productId = Shop.getIntInput("Enter the id of the product: ");
+					Product product = Shop.getProductById(productId);
+					if (product != null) {
+						float quantity = Shop.getFloatInput("Enter the quantity: ");
+						InvoiceItem item = new InvoiceItem();
+						item.setProduct(product);
+						item.setQuantity(quantity);
+						newInvoice.items.add(item);
+					}
+					else {
+						System.out.println("Product with an id of " + productId + " does not Exist...");
+					}
+				}while(Shop.repeatProcess("Do you want to enter another item (Y/N)? "));
+				
+				while(true) {
+					if (!newInvoice.setPaidAmount(Shop.getFloatInput("Enter the paid amount: "))){
+						System.out.println("Insufficient payment.");
+					}
+					else {
+						break;
+					}
+				}
+				Shop.invoices.add(newInvoice);
+				System.out.println("New invoice is added");
 			}
-		}while(Shop.repeatProcess("Do you want to enter another item (Y/N)? "));
-		
-		while(true) {
-			if (!newInvoice.setPaidAmount(Shop.getFloatInput("Enter the paid amount: "))){
-				System.out.println("Insufficient payment.");
-			}
-			else {
-				break;
-			}
-		}
-		Shop.printInvoice(newInvoice);
-		resultedInvoice = newInvoice;
+			Shop.printInvoice(newInvoice);
+			resultedInvoice = newInvoice;
+		}while(Shop.repeatProcess("Do you want to add another invoice (Y/N)? "));
 	}
 	
 }
 
 class ReportStatsPart extends MenuPart{
+	int noOfProducts;
+	int noOfInvoices;
+	float totalSales;
 	ReportStatsPart(){
 		this.title = "Report: Statistics";
 	}
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		
+        float totalSales = 0;
+        for(Invoice i : Shop.invoices) {
+        	totalSales+=i.getTotalAmount();
+        }
+        noOfProducts = Shop.products.size();
+        noOfInvoices = Shop.products.size();
+        this.totalSales = totalSales;
+        System.out.println("| No Of Items | No of Invoices |   Total Sales   |");
+        System.out.println("|-------------|----------------|-----------------|");
+        System.out.printf("| %-10s | %-12s | %-11s |\n", noOfProducts,noOfInvoices,totalSales);
 	}
 	
 }
 
 class ReportAllInvoicesPart extends MenuPart{
+	ArrayList<Invoice> returnedInvoices;
 	ReportAllInvoicesPart(){
 		this.title = "Report: All invoices";
 	}
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		
+		System.out.println("| Invoice No. | Invoice Date |        Customer Name        | No. Items | Total | Balance |");
+        System.out.println("|-------------|--------------|-----------------------------|-----------|-------|---------|");
+        for (Invoice i : Shop.invoices) {
+        	System.out.printf("|%-13s|%-14s|%-29s|%-11s|%-7s|%-9s|\n", i.getInvoiceNo(),i.getDate()
+        			,i.getCustomerName(),i.items.size(), i.getTotalAmount(), i.getBalance());
+        }
+		this.returnedInvoices = Shop.invoices;
 	}
 	
 }
 
 class SearchInvoicePart extends MenuPart{
+	Invoice resultedInvoice;
 	SearchInvoicePart(){
 		this.title = "Search (1) Invoice";
 	}
@@ -130,7 +164,15 @@ class SearchInvoicePart extends MenuPart{
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		
+		int input = Shop.getIntInput("Enter the No. of the invoice: ");
+		Invoice invoice = Shop.getInvoiceById(input);
+		if (invoice != null) {
+			this.resultedInvoice = invoice;
+			Shop.printInvoice(invoice);
+		}
+		else {
+			System.out.println("Invoice with ID of " + input + " does not exists.");
+		}
 	}
 	
 }
@@ -142,7 +184,9 @@ class AppStatsPart extends MenuPart{
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		
+		for (MenuPart i : Shop.menues.peek().menuParts) {
+			System.out.println(i.title + ": " + i.clicks);
+		}
 	}
 	
 }

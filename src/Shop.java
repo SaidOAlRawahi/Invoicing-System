@@ -16,13 +16,6 @@ public class Shop {
 	public static void main(String[] args) {
 		MainMenu mainMenu = new MainMenu();
 		menues.push(mainMenu);
-		System.out.print("\n " + "=".repeat(50) + Shop.shopName + "=".repeat(50) + "\n");
-		int headingLength = Shop.shopName.length()+102;
-		System.out.printf("|%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s||%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s|\n", "Telephone:", Shop.tel, "Fax:", Shop.fax);
-		System.out.printf("|%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s||%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s|\n", "Email:", Shop.email, "Website:", Shop.website);
-		System.out.println("=".repeat(headingLength-1));
-		System.out.printf("|%-" + ((headingLength/5)) + "s%-" + (headingLength/5) + "s%-" + ((headingLength/5)) + "s%-" + ((headingLength/5)-1) + "s%-" + (headingLength/5) + "s|\n", "Product Id","Product Name", "Unit Price", "Quantity", "Price");
-	
 		
 		while(!menues.isEmpty()) {
 			int input = getMenuInput(menues.peek());
@@ -116,8 +109,17 @@ public class Shop {
 	}
 	
 	static Product getProductById(int productId) {
-		for (Product i: Shop.products) {
+		for (Product i: products) {
 			if(i.getId() == productId) {
+				return i;
+			}
+		}
+		return null;
+	}
+	
+	static Invoice getInvoiceById(int invoiceNo) {
+		for (Invoice i : invoices) {
+			if (i.getInvoiceNo() == invoiceNo) {
 				return i;
 			}
 		}
@@ -127,10 +129,14 @@ public class Shop {
 	static void printInvoice(Invoice invoice) {
 		System.out.print("\n " + "=".repeat(50) + Shop.shopName + "=".repeat(50) + "\n");
 		int headingLength = Shop.shopName.length()+102;
-		System.out.printf("|%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s| %-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s|\n", "Telephone:", Shop.tel, "Fax:", Shop.fax);
-		System.out.printf("|%-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s| %-" + ((headingLength/4)-1) + "s%" + (headingLength/4) + "s|\n", "Email:", Shop.email, "Website:", Shop.website);
+		System.out.printf("|%" + ((headingLength/8)*7) + "s%-" + (headingLength/8) + "s|\n","Invoice NO. ",invoice.getInvoiceNo());
+		System.out.printf("|%-" + ((headingLength/4)-2) + "s%" + (headingLength/4) + "s| %-" + ((headingLength/4)) + "s%"
+				+ (headingLength/4) + "s|\n", "Telephone:", Shop.tel, "Fax:", Shop.fax);
+		System.out.printf("|%-" + ((headingLength/4)-2) + "s%" + (headingLength/4) + "s| %-" + ((headingLength/4)) + "s%"
+				+ (headingLength/4) + "s|\n", "Email:", Shop.email, "Website:", Shop.website);
 		System.out.println("=".repeat(headingLength-1));
-		System.out.printf("|%-" + ((headingLength/5)) + "s%-" + (headingLength/5) + "s%-" + ((headingLength/5)) + "s%-" + ((headingLength/5)-1) + "s%-" + (headingLength/5) + "s|\n", "Product Id","Product Name", "Unit Price", "Quantity", "Price");
+		System.out.printf("|%-" + ((headingLength/5)) + "s%-" + (headingLength/5) + "s%-" + ((headingLength/5)) + "s%-"
+		+ ((headingLength/5)-1) + "s%-" + (headingLength/5) + "s|\n", "Product Id","Product Name", "Unit Price", "Quantity", "Price");
 		for (InvoiceItem i: invoice.items) {
 			System.out.printf("|%-" + ((headingLength/5)) + "s%-" + (headingLength/5) + "s%-" + ((headingLength/5)) + "s%-" 
 					+ ((headingLength/5)-1) + "s%-" + (headingLength/5) + "s|\n", 
@@ -140,9 +146,11 @@ public class Shop {
 		System.out.printf("|%-" + (((headingLength/5)*3)-1) + "s%" + (headingLength/5) + "s%-" + (headingLength/5) + "s|\n"
 				,invoice.getDate(), "Total: ",invoice.getTotalAmount());
 		System.out.printf("|%-" + (((headingLength/5)*3)-1) + "s%" + (headingLength/5) + "s%-" + (headingLength/5) + "s|\n"
-				," ", "Paid: ",invoice.getAmountPaid());
+				,invoice.getCustomerPhoneNo(), "Paid: ",invoice.getAmountPaid());
 		System.out.printf("|%-" + (((headingLength/5)*3)-1) + "s%" + (headingLength/5) + "s%-" + (headingLength/5) + "s|\n"
-				," ", "Balance: ",invoice.getBalance());
+				,invoice.getCustomerName(), "Balance: ",invoice.getBalance());
+		System.out.println("=".repeat(headingLength-1)+"\n");
+
 	}
 	
 	

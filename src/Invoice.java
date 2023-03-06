@@ -7,12 +7,13 @@ public class Invoice implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 2667564412454072542L;
+	private int invoiceId;
 	private String customerFirstName;
 	private String customerLastName;
 	private int customerPhoneNo;
 	private LocalDate initiatedDate;
 	private float paidAmount;
-	ArrayList<InvoiceItem> items;
+	ArrayList<InvoiceItem> items = new ArrayList<InvoiceItem>();
 	
 	
 /*-----------------------------------------------------------------------------------------*/
@@ -38,6 +39,9 @@ public class Invoice implements Serializable{
 	}
 	public float getAmountPaid() {
 		return paidAmount;
+	}
+	public int getInvoiceNo() {
+		return invoiceId;
 	}
 
 /*-----------------------------------------------------------------------------------------*/
@@ -65,5 +69,8 @@ public class Invoice implements Serializable{
 		else {
 			return false;
 		}
+	}
+	public void setInvoiceNo(int invoiceId) {
+		this.invoiceId = invoiceId;
 	}
 }
