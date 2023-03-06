@@ -108,6 +108,12 @@ class CreateNewInvoicePart extends MenuPart{
 			Shop.printInvoice(newInvoice);
 			resultedInvoice = newInvoice;
 		}while(Shop.repeatProcess("Do you want to add another invoice (Y/N)? "));
+		try {
+			Shop.saveAndSerialize();			
+		}
+		catch (Throwable t) {
+			System.out.println("Could save data due to: "+t);
+		}
 	}
 	
 }
@@ -200,7 +206,12 @@ class LoadDataPart extends MenuPart{
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		
+		try {
+			Shop.deserializeData();			
+		}
+		catch (Throwable t) {
+			System.out.println("Could save fetch data due to: "+t);
+		}
 	}
 	
 }
@@ -256,6 +267,12 @@ class AddItemsPart extends MenuPart{
 				System.out.println("Product with an id of " + productId + " already exists...");
 			}
 		}while(Shop.repeatProcess("Do you want to add more items (Y/N)? "));
+		try {
+			Shop.saveAndSerialize();			
+		}
+		catch (Throwable t) {
+			System.out.println("Could save data due to: "+t);
+		}
 	}
 	
 }
@@ -278,6 +295,12 @@ class DeleteItemsPart extends MenuPart{
 				System.out.println("Product with an id of " + productId + " does not Exist...");
 			}
 		}while(Shop.repeatProcess("Do you want to delete more items (Y/N)? "));
+		try {
+			Shop.saveAndSerialize();			
+		}
+		catch (Throwable t) {
+			System.out.println("Could save data due to: "+t);
+		}
 	}
 	
 }
@@ -301,7 +324,14 @@ class ChangeItemPricePart extends MenuPart{
 				System.out.println("Product with an id of " + productId + " does not Exist...");
 			}
 		}while(Shop.repeatProcess("Do you want to change the price another item (Y/N)? "));
+		try {
+			Shop.saveAndSerialize();			
+		}
+		catch (Throwable t) {
+			System.out.println("Could save data due to: "+t);
+		}
 	}
+	
 	
 }
 
