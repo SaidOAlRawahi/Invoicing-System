@@ -4,6 +4,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.*;
 
 
@@ -19,7 +23,16 @@ public class Shop {
 	static String email;
 	static String website;
 	
+	static String url = "jdbc:sqlserver://localhost:1433;" +
+            "databaseName=Invoice_System;" +
+            "encrypt=true;" +
+            "trustServerCertificate=true";
+	static String user = "sa";
+	static String pass = "root";
+    static Connection con = null;
+    
 	public static void main(String[] args) {
+		
 		MainMenu mainMenu = new MainMenu();
 		menues.push(mainMenu);
 		
@@ -154,7 +167,7 @@ public class Shop {
 		System.out.printf("|%-" + (((headingLength/5)*3)-1) + "s%" + (headingLength/5) + "s%-" + (headingLength/5) + "s|\n"
 				,invoice.getCustomerPhoneNo(), "Paid: ",invoice.getAmountPaid());
 		System.out.printf("|%-" + (((headingLength/5)*3)-1) + "s%" + (headingLength/5) + "s%-" + (headingLength/5) + "s|\n"
-				,invoice.getCustomerName(), "Balance: ",invoice.getBalance());
+				,invoice.getCustomerFirstName() + " " + invoice.getCustomerLastName(), "Balance: ",invoice.getBalance());
 		System.out.println("=".repeat(headingLength-1)+"\n");
 
 	}
@@ -164,12 +177,138 @@ public class Shop {
         out.writeObject(products);
         out.writeObject(invoices);
         out.close();
+        System.out.println("\nData are serialized in a file.");
+        saveDataIntoDatabase();
+        
 	}
 	
-	static void deserializeData() throws FileNotFoundException, IOException, ClassNotFoundException {
+	static void fetchData() throws FileNotFoundException, IOException, ClassNotFoundException {
         ObjectInputStream in = new ObjectInputStream(new FileInputStream("Serialized Data.txt"));
-        products = (LinkedList<Product>) in.readObject();
-        invoices = (ArrayList<Invoice>) in.readObject();
+        LinkedList<Product> fetchedProducts = (LinkedList<Product>) in.readObject();
+        ArrayList<Invoice> fetchedInvoices = (ArrayList<Invoice>) in.readObject();
+        in.close();
+        if (!fetchedProducts.isEmpty()) {
+        	products = fetchedProducts;
+
+        }
+        else {
+        	System.out.println("No prooducts data is found from file");
+        	System.out.println("Fetching products from Data Base...");
+        }
+        if (!fetchedInvoices.isEmpty()) {
+        	invoices = fetchedInvoices;
+        }
+        else {
+        	System.out.println("No invoices data is found from file");
+        	System.out.println("Fetching invoices from Data Base...");
+        }
+        
+	}
+	
+	static void saveDataIntoDatabase() {
+		try {
+        	Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+            DriverManager.registerDriver(driver);
+            con = DriverManager.getConnection(url, user, pass);
+            
+            Statement st = con.createStatement();
+            
+/*----------------------------------------Resetting all tables----------------------------------------*/
+            st.executeUpdate("DROP TABLE invoice_items,invoices,products;");
+
+/*----------------------------------------creating Invoices table----------------------------------------*/
+            String sql = "CREATE TABLE invoices(\r\n"
+            		+ "		invoice_no INT PRIMARY KEY,\r\n"
+            		+ "		customer_first_name TEXT,\r\n"
+            		+ "		customer_last_name TEXT,\r\n"
+            		+ "		customer_phone_no INT,\r\n"
+            		+ "		initiated_date DATE,\r\n"
+            		+ "		paid_amount FLOAT\r\n"
+            		+ "	)\r\n";
+            int returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\ninvoices table is created");            	
+            }
+            
+/*----------------------------------------creating Products table----------------------------------------*/
+            sql = "CREATE TABLE products(\r\n"
+            		+ "		product_id INT PRIMARY KEY,\r\n"
+            		+ "		product_name text,\r\n"
+            		+ "		product_price FLOAT\r\n"
+            		+ "	)\r\n";
+            returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\nproducts table is created");            	
+            }
+            
+/*----------------------------------------creating Invoice_items table----------------------------------------*/
+            sql = "CREATE TABLE invoice_items(\r\n"
+            		+ "		id INT PRIMARY KEY IDENTITY(1,1),\r\n"
+            		+ "		product_id INT, \r\n"
+            		+ "		invoice_id INT ,\r\n"
+            		+ "		quanity FLOAT,\r\n"
+            		+ "		FOREIGN KEY (product_id) REFERENCES products(product_id),\r\n"
+            		+ "		FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_no)\r\n"
+            		+ "	)\r\n";
+            returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\ninvoice items table is created");            	
+            }
+
+/*----------------------------------------adding data to databasee----------------------------------------*/
+            
+            System.out.println("\nsaving data into database...");
+            for (Invoice i: invoices) {
+            	System.out.println("check 1");
+            	sql = "INSERT INTO invoices VALUES(\r\n"
+            			+ "	" + i.getInvoiceNo() + ",\r\n"
+            			+ "	'" + i.getCustomerFirstName() + "',\r\n"
+            			+ "	'" + i.getCustomerLastName() + "',\r\n"
+            			+ "	" + i.getCustomerPhoneNo() +  ",\r\n"
+            			+ "	" + "CONVERT(DATE, '" + i.getDate() + "'),\r\n"
+            			+ "	" + i.getAmountPaid() + "\r\n"
+            			+ ");";
+            	st.executeUpdate(sql);
+            }
+            System.out.println("Invoices are saved.");
+            
+            System.out.println("\nsaving data into database...");
+            for (Product i: products) {
+            	System.out.println("check 2");
+
+            	sql = "INSERT INTO products VALUES(\r\n"
+            			+ "	" + i.getId() + ",\r\n"
+            			+ "	'" + i.getName()+ "',\r\n"
+            			+ "	" + i.getPrice() + "\r\n"
+            			+ ");";
+            	st.executeUpdate(sql);
+            }
+            System.out.println("Products are saved.");
+            
+            System.out.println("\nsaving data into database...");
+            for (Invoice i : invoices) {
+            	for(InvoiceItem j : i.items) {
+                	System.out.println("check 3");
+
+            		sql = "INSERT INTO invoice_items VALUES(\r\n"
+            				+ "	" + j.getId() + ",\r\n"
+            				+ "	" + i.getInvoiceNo() + ",\r\n"
+            				+ "	" + j.getQuantity() + "\r\n"
+            				+ ");";
+                	st.executeUpdate(sql);
+            	}
+            }
+            System.out.println("Items inside each invoice are saved.");
+/*-----------------------------------end---------------------------------------*/
+            con.close();
+        }
+        catch(Exception ex) {
+        	System.out.println("Something went wrong: ");
+        	System.err.println(ex);
+        }
+	}
+	static void getDataFromDatabase(boolean isInvoice) {
+		
 	}
 	
 }

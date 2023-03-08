@@ -18,8 +18,11 @@ public class Invoice implements Serializable{
 	
 /*-----------------------------------------------------------------------------------------*/
 	
-	public String getCustomerName() {
-		return customerFirstName + " " + customerLastName;
+	public String getCustomerFirstName() {
+		return customerFirstName;
+	}
+	public String getCustomerLastName() {
+		return customerLastName;
 	}
 	public int getCustomerPhoneNo() {
 		return customerPhoneNo;
@@ -43,12 +46,13 @@ public class Invoice implements Serializable{
 	public int getInvoiceNo() {
 		return invoiceId;
 	}
-
-/*-----------------------------------------------------------------------------------------*/
-	
 	public float getBalance() {
 		return getAmountPaid() - getTotalAmount();
 	}
+
+/*-----------------------------------------------------------------------------------------*/
+	
+	
 	public void setCustomerFirstName(String customerFirstName) {
 		this.customerFirstName = customerFirstName;
 	}

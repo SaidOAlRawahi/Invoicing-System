@@ -65,55 +65,56 @@ class CreateNewInvoicePart extends MenuPart{
 	@Override
 	void triggerAction(){
 		super.triggerAction();
-		do {
-			int invoiceNo = Shop.getIntInput("Enter the bill number: ");
-			Invoice newInvoice = Shop.getInvoiceById(invoiceNo);
-			if (newInvoice != null) {
-				System.out.println("Invoice already exists.");
-			}
-			else {
-				newInvoice = new Invoice();
-				newInvoice.setInvoiceNo(invoiceNo);
-				newInvoice.setCustomerFirstName(Shop.getStringInput("Enter the customer first name: "));
-				newInvoice.setCustomerLastName(Shop.getStringInput("Enter the customer last name: "));
-				newInvoice.setCustomerPhoneNo(Shop.getIntInput("Enter the customer phone Number: "));
-				newInvoice.setInitiatedDate(LocalDate.now());
-				
-				do {
-					int productId = Shop.getIntInput("Enter the id of the product: ");
-					Product product = Shop.getProductById(productId);
-					if (product != null) {
-						float quantity = Shop.getFloatInput("Enter the quantity: ");
-						InvoiceItem item = new InvoiceItem();
-						item.setProduct(product);
-						item.setQuantity(quantity);
-						newInvoice.items.add(item);
-					}
-					else {
-						System.out.println("Product with an id of " + productId + " does not Exist...");
-					}
-				}while(Shop.repeatProcess("Do you want to enter another item (Y/N)? "));
-				
-				while(true) {
-					if (!newInvoice.setPaidAmount(Shop.getFloatInput("Enter the paid amount: "))){
-						System.out.println("Insufficient payment.");
-					}
-					else {
-						break;
-					}
+			do {
+				int invoiceNo = Shop.getIntInput("Enter the bill number: ");
+				Invoice newInvoice = Shop.getInvoiceById(invoiceNo);
+				if (newInvoice != null) {
+					System.out.println("Invoice already exists.");
 				}
-				Shop.invoices.add(newInvoice);
-				System.out.println("New invoice is added");
+				else {
+					newInvoice = new Invoice();
+					newInvoice.setInvoiceNo(invoiceNo);
+					newInvoice.setCustomerFirstName(Shop.getStringInput("Enter the customer first name: "));
+					newInvoice.setCustomerLastName(Shop.getStringInput("Enter the customer last name: "));
+					newInvoice.setCustomerPhoneNo(Shop.getIntInput("Enter the customer phone Number: "));
+					newInvoice.setInitiatedDate(LocalDate.now());
+					
+					do {
+						int productId = Shop.getIntInput("Enter the id of the product: ");
+						Product product = Shop.getProductById(productId);
+						if (product != null) {
+							float quantity = Shop.getFloatInput("Enter the quantity: ");
+							InvoiceItem item = new InvoiceItem();
+							item.setProduct(product);
+							item.setQuantity(quantity);
+							newInvoice.items.add(item);
+						}
+						else {
+							System.out.println("Product with an id of " + productId + " does not Exist...");
+						}
+					}while(Shop.repeatProcess("Do you want to enter another item (Y/N)? "));
+					
+					while(true) {
+						if (!newInvoice.setPaidAmount(Shop.getFloatInput("Enter the paid amount: "))){
+							System.out.println("Insufficient payment.");
+						}
+						else {
+							break;
+						}
+					}
+					Shop.invoices.add(newInvoice);
+					System.out.println("New invoice is added");
+				}
+				Shop.printInvoice(newInvoice);
+				resultedInvoice = newInvoice;
+			}while(Shop.repeatProcess("Do you want to add another invoice (Y/N)? "));
+			try {
+				Shop.saveAndSerialize();			
 			}
-			Shop.printInvoice(newInvoice);
-			resultedInvoice = newInvoice;
-		}while(Shop.repeatProcess("Do you want to add another invoice (Y/N)? "));
-		try {
-			Shop.saveAndSerialize();			
-		}
-		catch (Throwable t) {
-			System.out.println("Could save data due to: "+t);
-		}
+			catch (Throwable t) {
+				System.out.println("Could save data due to: "+t);
+			}
+		
 	}
 	
 }
@@ -137,7 +138,7 @@ class ReportStatsPart extends MenuPart{
         this.totalSales = totalSales;
         System.out.println("| No Of Items | No of Invoices |   Total Sales   |");
         System.out.println("|-------------|----------------|-----------------|");
-        System.out.printf("| %-10s | %-12s | %-11s |\n", noOfProducts,noOfInvoices,totalSales);
+        System.out.printf("| %-11s | %-14s | %-15s |\n", noOfProducts,noOfInvoices,totalSales);
 	}
 	
 }
@@ -154,7 +155,8 @@ class ReportAllInvoicesPart extends MenuPart{
         System.out.println("|-------------|--------------|-----------------------------|-----------|-------|---------|");
         for (Invoice i : Shop.invoices) {
         	System.out.printf("|%-13s|%-14s|%-29s|%-11s|%-7s|%-9s|\n", i.getInvoiceNo(),i.getDate()
-        			,i.getCustomerName(),i.items.size(), i.getTotalAmount(), i.getBalance());
+        			,i.getCustomerFirstName() + " " + i.getCustomerLastName(),i.items.size(),
+        			i.getTotalAmount(), i.getBalance());
         }
 		this.returnedInvoices = Shop.invoices;
 	}
@@ -207,7 +209,7 @@ class LoadDataPart extends MenuPart{
 	void triggerAction(){
 		super.triggerAction();
 		try {
-			Shop.deserializeData();			
+			Shop.fetchData();			
 		}
 		catch (Throwable t) {
 			System.out.println("Could save fetch data due to: "+t);
