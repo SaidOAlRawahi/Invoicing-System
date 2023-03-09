@@ -7,7 +7,11 @@ import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 
@@ -187,25 +191,19 @@ public class Shop {
         LinkedList<Product> fetchedProducts = (LinkedList<Product>) in.readObject();
         ArrayList<Invoice> fetchedInvoices = (ArrayList<Invoice>) in.readObject();
         in.close();
-        if (!fetchedProducts.isEmpty()) {
+        if (!fetchedProducts.isEmpty()||!fetchedInvoices.isEmpty()) {
         	products = fetchedProducts;
-
-        }
-        else {
-        	System.out.println("No prooducts data is found from file");
-        	System.out.println("Fetching products from Data Base...");
-        }
-        if (!fetchedInvoices.isEmpty()) {
         	invoices = fetchedInvoices;
         }
         else {
-        	System.out.println("No invoices data is found from file");
-        	System.out.println("Fetching invoices from Data Base...");
+        	System.out.println("Not all data is retrieved from file.");
+        	fetchDataFromDB();
         }
         
 	}
 	
-	static void saveDataIntoDatabase() {
+	static void fetchDataFromDB() {
+		System.out.println("Fetching data from Data Base...");
 		try {
         	Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
             DriverManager.registerDriver(driver);
@@ -213,49 +211,79 @@ public class Shop {
             
             Statement st = con.createStatement();
             
-/*----------------------------------------Resetting all tables----------------------------------------*/
-            st.executeUpdate("DROP TABLE invoice_items,invoices,products;");
-
-/*----------------------------------------creating Invoices table----------------------------------------*/
-            String sql = "CREATE TABLE invoices(\r\n"
-            		+ "		invoice_no INT PRIMARY KEY,\r\n"
-            		+ "		customer_first_name TEXT,\r\n"
-            		+ "		customer_last_name TEXT,\r\n"
-            		+ "		customer_phone_no INT,\r\n"
-            		+ "		initiated_date DATE,\r\n"
-            		+ "		paid_amount FLOAT\r\n"
-            		+ "	)\r\n";
-            int returnedVal = st.executeUpdate(sql);
-            if (returnedVal==0) {
-            	System.out.println("\ninvoices table is created");            	
+/*----------------------------fetching products----------------------------------*/            
+            String sql = "IF EXISTS (SELECT * FROM sys.tables WHERE name = 'products')\r\n"
+            		+ "BEGIN\r\n"
+            		+ "   SELECT * FROM products\r\n"
+            		+ "END";
+            ResultSet resultSet = st.executeQuery(sql);
+            
+            products.clear();
+            while(resultSet.next()){
+            	Product productFromDatabase = new Product();
+            	productFromDatabase.setId(resultSet.getInt(1));
+            	productFromDatabase.setName(resultSet.getString(2));
+            	productFromDatabase.setPrice(resultSet.getFloat(3));
+            	products.add(productFromDatabase);
             }
             
-/*----------------------------------------creating Products table----------------------------------------*/
-            sql = "CREATE TABLE products(\r\n"
-            		+ "		product_id INT PRIMARY KEY,\r\n"
-            		+ "		product_name text,\r\n"
-            		+ "		product_price FLOAT\r\n"
-            		+ "	)\r\n";
-            returnedVal = st.executeUpdate(sql);
-            if (returnedVal==0) {
-            	System.out.println("\nproducts table is created");            	
+/*----------------------------fetching invoices----------------------------------*/            
+            invoices.clear();
+            sql = "IF EXISTS (SELECT * FROM sys.tables WHERE name = 'invoices')\r\n"
+            		+ "BEGIN\r\n"
+            		+ "   SELECT * FROM invoices\r\n"
+            		+ "END";
+            resultSet = st.executeQuery(sql);
+            invoices.clear();
+            while(resultSet.next()){
+            	Invoice invoiceFromDatabase = new Invoice();
+            	invoiceFromDatabase.setInvoiceNo(resultSet.getInt(1));
+            	invoiceFromDatabase.setCustomerFirstName(resultSet.getString(2));
+            	invoiceFromDatabase.setCustomerLastName(resultSet.getString(3));
+            	invoiceFromDatabase.setCustomerPhoneNo(resultSet.getInt(4));
+            	Date date = resultSet.getDate(5);
+            	invoiceFromDatabase.setInitiatedDate(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            	invoiceFromDatabase.setPaidAmount(resultSet.getFloat(6));
+            	invoices.add(invoiceFromDatabase);
+            }
+/*----------------------------fetching invoices items----------------------------------*/            
+            sql = "IF EXISTS (SELECT * FROM sys.tables WHERE name = 'invoice_items')\r\n"
+            		+ "BEGIN\r\n"
+            		+ "   SELECT * FROM invoice_items\r\n"
+            		+ "END";
+            resultSet = st.executeQuery(sql);
+            
+            while(resultSet.next()){
+            	InvoiceItem invoiceItemFromDatabase = new InvoiceItem();
+            	
+            	invoiceItemFromDatabase.setProduct(getProductById(resultSet.getInt(2)));
+            	invoiceItemFromDatabase.setQuantity(resultSet.getFloat(4));
+            	
+            	Invoice parentInvoice = getInvoiceById(resultSet.getInt(3));
+            	invoices.get(invoices.indexOf(parentInvoice)).items.add(invoiceItemFromDatabase);
             }
             
-/*----------------------------------------creating Invoice_items table----------------------------------------*/
-            sql = "CREATE TABLE invoice_items(\r\n"
-            		+ "		id INT PRIMARY KEY IDENTITY(1,1),\r\n"
-            		+ "		product_id INT, \r\n"
-            		+ "		invoice_id INT ,\r\n"
-            		+ "		quanity FLOAT,\r\n"
-            		+ "		FOREIGN KEY (product_id) REFERENCES products(product_id),\r\n"
-            		+ "		FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_no)\r\n"
-            		+ "	)\r\n";
-            returnedVal = st.executeUpdate(sql);
-            if (returnedVal==0) {
-            	System.out.println("\ninvoice items table is created");            	
-            }
+            con.close();
+        }
+		
+		
+		
+        catch(Exception ex) {
+        	System.out.println("Something went wrong: ");
+        	System.err.println(ex);
+        }
+	}
 
+	static void saveDataIntoDatabase() {
+		try {
+        	Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+            DriverManager.registerDriver(driver);
+            con = DriverManager.getConnection(url, user, pass);
+            
+            Statement st = con.createStatement();
+            resetDatabase(st);
 /*----------------------------------------adding data to databasee----------------------------------------*/
+            String sql;
             
             System.out.println("\nsaving data into database...");
             for (Invoice i: invoices) {
@@ -307,8 +335,51 @@ public class Shop {
         	System.err.println(ex);
         }
 	}
-	static void getDataFromDatabase(boolean isInvoice) {
-		
+
+	static void resetDatabase(Statement st) throws Exception {
+
+/*----------------------------------------Resetting all tables----------------------------------------*/
+            st.executeUpdate("DROP TABLE IF EXISTS invoice_items,invoices,products;");
+
+/*----------------------------------------creating Invoices table----------------------------------------*/
+            String sql = "CREATE TABLE invoices(\r\n"
+            		+ "		invoice_no INT PRIMARY KEY,\r\n"
+            		+ "		customer_first_name TEXT,\r\n"
+            		+ "		customer_last_name TEXT,\r\n"
+            		+ "		customer_phone_no INT,\r\n"
+            		+ "		initiated_date DATE,\r\n"
+            		+ "		paid_amount FLOAT\r\n"
+            		+ "	)\r\n";
+            int returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\ninvoices table is created");            	
+            }
+            
+/*----------------------------------------creating Products table----------------------------------------*/
+            sql = "CREATE TABLE products(\r\n"
+            		+ "		product_id INT PRIMARY KEY,\r\n"
+            		+ "		product_name text,\r\n"
+            		+ "		product_price FLOAT\r\n"
+            		+ "	)\r\n";
+            returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\nproducts table is created");            	
+            }
+            
+/*----------------------------------------creating Invoice_items table----------------------------------------*/
+            sql = "CREATE TABLE invoice_items(\r\n"
+            		+ "		id INT PRIMARY KEY IDENTITY(1,1),\r\n"
+            		+ "		product_id INT, \r\n"
+            		+ "		invoice_id INT ,\r\n"
+            		+ "		quanity FLOAT,\r\n"
+            		+ "		FOREIGN KEY (product_id) REFERENCES products(product_id),\r\n"
+            		+ "		FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_no)\r\n"
+            		+ "	)\r\n";
+            returnedVal = st.executeUpdate(sql);
+            if (returnedVal==0) {
+            	System.out.println("\ninvoice items table is created");            	
+            }
 	}
+	
 	
 }

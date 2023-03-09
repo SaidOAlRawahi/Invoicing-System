@@ -24,6 +24,7 @@ class  MainMenu extends Menu{
 		this.menuParts.add(new ReportAllInvoicesPart());
 		this.menuParts.add(new SearchInvoicePart());
 		this.menuParts.add(new AppStatsPart());
+		this.menuParts.add(new Insert1MillionInvoicesPart());
 		this.menuParts.add(new ExitPart("Exit."));
 	}
 }
