@@ -2,6 +2,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -140,7 +141,7 @@ class ReportStatsPart extends MenuPart {
 			totalSales += i.getTotalAmount();
 		}
 		noOfProducts = Shop.products.size();
-		noOfInvoices = Shop.products.size();
+		noOfInvoices = Shop.invoices.size();
 		this.totalSales = totalSales;
 		System.out.println("| No Of Items | No of Invoices |   Total Sales   |");
 		System.out.println("|-------------|----------------|-----------------|");
@@ -211,46 +212,13 @@ class AppStatsPart extends MenuPart {
 }
 class Insert1MillionInvoicesPart extends MenuPart {
 	Insert1MillionInvoicesPart() {
-		this.title = "Insert1 Million Invoices";
+		this.title = "Insert 1 Million Invoices";
 	}
 
 	@Override
 	void triggerAction() {
 		super.triggerAction();
-		/*long endTime = 0;
-		long startTime = 0;
-		try {
-			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-			DriverManager.registerDriver(driver);
-			Shop.con = DriverManager.getConnection(Shop.url, Shop.user, Shop.pass);
-			
-			Statement st = Shop.con.createStatement();
-			Shop.resetDatabase(st);
-			
-			startTime = System.nanoTime();
-			for (int i = 0; i < 1_000_000; i++) {
-				String sql = "INSERT INTO invoices VALUES(\r\n"
-            			+ "	" + i + ",\r\n"
-            			+ "	'Said" + i + "',\r\n"
-            			+ "	'Alrawahi" + i + "',\r\n"
-            			+ "	99" + i + ",\r\n"
-            			+ "	" + "getdate(),\r\n"
-            			+ "	" + i + ".22\r\n"
-            			+ ");";
-				st.executeUpdate(sql);
-			}
-			endTime   = System.nanoTime();
-			
-			Shop.con.close();
-		}
-		catch(Exception ex) {
-			System.out.println("Something went wrong: ");
-			System.err.println(ex);
-		}
-		long totalTime = endTime - startTime;
-		int minutes = (int) (totalTime / 1_000_000_000) / 60;
-		int seconds = (int) (totalTime / 1_000_000_000) % 60;
-		System.out.println("time taken to insert 1M records took " + minutes + ":" + seconds);*/
+
 		long endTime = 0;
 		long startTime = 0;
 		try {
@@ -260,8 +228,10 @@ class Insert1MillionInvoicesPart extends MenuPart {
 			
 			Statement st = Shop.con.createStatement();
 			Shop.resetDatabase(st);
-			
-			startTime = System.nanoTime();
+			System.out.println("Inserting the rows to db....");
+
+//-----------------------------average time is 5 minutes for this to store 1 million users.---------------------------------
+			/*startTime = System.nanoTime();
 			for (int i = 0; i < 1_000_000; i++) {
 				String sql = "INSERT INTO invoices VALUES(\r\n"
             			+ "	" + i + ",\r\n"
@@ -273,6 +243,36 @@ class Insert1MillionInvoicesPart extends MenuPart {
             			+ ");";
 				st.executeUpdate(sql);
 			}
+			endTime   = System.nanoTime();*/
+			
+//-----------------------------This one is taking over 2 hours so No.---------------------------------
+			/*startTime = System.nanoTime();
+			String sql = "";
+			for (int i = 0; i < 1_000_000; i++) {
+				sql += "INSERT INTO invoices VALUES(\r\n"
+            			+ "	" + i + ",\r\n"
+            			+ "	'Said" + i + "',\r\n"
+            			+ "	'Alrawahi" + i + "',\r\n"
+            			+ "	99" + i + ",\r\n"
+            			+ "	" + "getdate(),\r\n"
+            			+ "	" + i + ".22\r\n"
+            			+ ");\r\n";
+			}
+			st.executeUpdate(sql);
+			endTime   = System.nanoTime();*/
+			
+//-----------------------------average time is 2:33---------------------------------
+			PreparedStatement statement = Shop.con.prepareStatement("INSERT INTO invoices VALUES (?, ?, ?, ?, getdate(), ?)");
+			startTime = System.nanoTime();
+			for (int i = 0; i < 1_000_000; i++) {
+				statement.setInt(1,i);
+				statement.setString(2,"Said"+i);
+				statement.setString(3,"Alrawahi"+i);
+				statement.setInt(4,99+i);
+				statement.setFloat(5,(float) (i+0.22));
+				statement.addBatch();
+			}
+			statement.executeBatch();
 			endTime   = System.nanoTime();
 			
 			Shop.con.close();
